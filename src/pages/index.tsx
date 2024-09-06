@@ -10,7 +10,7 @@ import {
   ListItemButton,
   Typography,
 } from "@mui/material";
-import { MouseEvent, useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 
 export default function Home() {
   const [rooms, setRooms] = useState<IRoom[]>([]);

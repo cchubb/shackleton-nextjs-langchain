@@ -22,12 +22,12 @@ create or replace function match_documents (
 begin
     return query
     select
-        id,
-        content,
-        metadata,
+        documents.id,
+        documents.content,
+        documents.metadata,
         1 - (documents.embedding <=> query_embedding) as similarity
     from documents
-    where metadata @> filter
+    where documents.metadata @> filter
     order by documents.embedding <=> query_embedding
     limit match_count;
 end;
