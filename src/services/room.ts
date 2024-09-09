@@ -1,4 +1,4 @@
-import { supabaseClient } from "@/libs/supabaseClient";
+import { getDBClient } from "@/libs/supabaseClient";
 
 export interface IRoom {
   id?: number | undefined;
@@ -7,6 +7,7 @@ export interface IRoom {
 
 // Fetch the list of chat rooms from the Supabase database.
 export async function fetchRooms(): Promise<IRoom[]> {
+  const supabaseClient = getDBClient();
   const { data, error } = await supabaseClient
     .from("rooms")
     .select()
@@ -20,6 +21,7 @@ export async function fetchRooms(): Promise<IRoom[]> {
 
 // Create a new chat room in the database.
 export async function createRoom(): Promise<IRoom> {
+  const supabaseClient = getDBClient();
   const { data, error } = await supabaseClient
     .from("rooms")
     .insert({})

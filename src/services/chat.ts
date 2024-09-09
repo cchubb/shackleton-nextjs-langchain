@@ -1,5 +1,5 @@
-import { embeddings, llm } from "@/libs/openAI";
-import { supabaseClient } from "@/libs/supabaseClient";
+import { getAI } from "@/libs/openAI";
+import { getDBClient } from "@/libs/supabaseClient";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import {
@@ -23,6 +23,7 @@ export interface IChat {
 
 // Fetch the list of chats for a given room from the Supabase database.
 export async function fetchChats(roomId: number): Promise<IChat[]> {
+  const supabaseClient = getDBClient();
   const { data, error } = await supabaseClient
     .from("chats")
     .select()
@@ -37,6 +38,7 @@ export async function fetchChats(roomId: number): Promise<IChat[]> {
 
 // Post a new chat message to the database.
 export async function postChat(chat: IChat): Promise<IChat> {
+  const supabaseClient = getDBClient();
   const { data, error } = await supabaseClient
     .from("chats")
     .insert(chat)
@@ -50,6 +52,9 @@ export async function postChat(chat: IChat): Promise<IChat> {
 
 // Get an answer from the chatbot based on the user's chat message.
 export async function getAnswer(chat: IChat, fileId: number): Promise<IChat> {
+  const { embeddings, llm } = getAI();
+  const supabaseClient = getDBClient();
+
   const vectorStore = await SupabaseVectorStore.fromExistingIndex(embeddings, {
     client: supabaseClient,
     tableName: "documents",

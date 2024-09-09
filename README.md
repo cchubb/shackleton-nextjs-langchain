@@ -1,3 +1,5 @@
+From https://dev.to/nassermaronie/building-a-custom-chatbot-with-nextjs-langchain-openai-and-supabase-4idp
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
