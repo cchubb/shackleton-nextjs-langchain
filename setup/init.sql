@@ -55,3 +55,58 @@ create table if not exists chats (
     message text not null,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- drop function best_jobs;
+
+create or replace function best_jobs (
+    query_embedding vector(1536), -- Pass in the pertinent parts of the resume
+    match_count int default null,
+    filter jsonb default '{}'
+) returns table (
+    id uuid,
+    content text,
+    metadata jsonb,
+    similarity float
+) language plpgsql as $$
+begin
+    return query
+    select
+        allJjobs.id,
+        allJjobs.content,
+        allJjobs.metadata,
+        allJjobs.similarity
+    from
+        (
+        SELECT greenhousejobs.id, greenhousejobs.created, greenhousejobs.metadata, greenhousejobs.content, 1 - (greenhousejobs.vectors <=> query_embedding) as similarity
+          FROM greenhousejobs
+          WHERE greenhousejobs.created >= now() - interval '30 days'
+            AND greenhousejobs.metadata @> filter
+        UNION ALL
+        SELECT leverjobs.id, leverjobs.created, leverjobs.metadata, leverjobs.content, 1 - (leverjobs.vectors <=> query_embedding) as similarity
+        FROM leverjobs
+          WHERE leverjobs.created >= now() - interval '30 days'
+            AND leverjobs.metadata @> filter
+        UNION ALL
+        SELECT workdayjobs.id, workdayjobs.created, workdayjobs.metadata, workdayjobs.content, 1 - (workdayjobs.vectors <=> query_embedding) as similarity
+        FROM workdayjobs
+          WHERE workdayjobs.created >= now() - interval '30 days'
+            AND workdayjobs.metadata @> filter
+        UNION ALL
+        SELECT icimsjobs.id, icimsjobs.created, icimsjobs.metadata, icimsjobs.content, 1 - (icimsjobs.vectors <=> query_embedding) as similarity
+        FROM icimsjobs
+          WHERE icimsjobs.created >= now() - interval '30 days'
+            AND icimsjobs.metadata @> filter
+        UNION ALL
+        SELECT hirebridgejobs.id, hirebridgejobs.created, hirebridgejobs.metadata, hirebridgejobs.content, 1 - (hirebridgejobs.vectors <=> query_embedding) as similarity
+        FROM hirebridgejobs
+          WHERE hirebridgejobs.created >= now() - interval '30 days'
+            AND hirebridgejobs.metadata @> filter
+        ) allJjobs
+    WHERE allJjobs.metadata @> filter
+    order by allJjobs.similarity -- jobs.embedding <=> query_embedding
+    limit match_count;
+end;
+$$;
+
+select * from best_jobs(null, 10);
+
